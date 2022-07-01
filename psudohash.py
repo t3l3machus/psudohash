@@ -10,22 +10,27 @@ import argparse, sys, itertools
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-w", "--word", action="store", help = "Main word to transform", required = True)
-parser.add_argument("-sn", "--serial-numbering", action="store", help = "Add comma seperated values to common paddings (must be used with -cp OR -cpb OR -cpa)")
-parser.add_argument("-y", "--years", action="store", help = "Comma seperated OR range of year values (e.g., 1990,2022 OR 1990-2000)")
-parser.add_argument("-ap", "--append-padding", action="store", help = "Add comma seperated values to common paddings (must be used with -cp OR -cpb OR -cpa)")
+parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range to each word mutation.\n\nValues:\n[ -an 0,99 ] will append numbering 1-99 to the end of each word (before appending year or common paddings)\n[ -an 1,50 ] will append numbering 1-50 and 01-50 to the end of each word (before apeending year or paddings)", type = int, metavar='LEVEL')
+parser.add_argument("-nl", "--numbering-limit", action="store", help = "Append numbering range to each word mutation.\n\nValues:\n[ -an 0,99 ] will append numbering 1-99 to the end of each word (before appending year or common paddings)\n[ -an 1,50 ] will append numbering 1-50 and 01-50 to the end of each word (before apeending year or paddings)", type = int, metavar='LIMIT')
+parser.add_argument("-y", "--years", action="store", help = "Singe OR comma seperated OR range of years to be appended to each word mutation (Example: 2022 OR 1990,2017,2022 OR 1990-2000)")
+parser.add_argument("-ap", "--append-padding", action="store", help = "Add comma seperated values to common paddings (must be used with -cp OR -cpb OR -cpa)", metavar='VALUES')
 parser.add_argument("-cpb", "--common-paddings-before", action="store_true", help = "Add common paddings before each mutated word") 
 parser.add_argument("-cpa", "--common-paddings-after", action="store_true", help = "Add common paddings after each mutated word") 
 parser.add_argument("-cpo", "--custom-paddings-only", action="store_true", help = "Use only user provided paddings for word mutations (must be used with -ap AND (-cp OR -cpb OR -cpa))") 
-parser.add_argument("-o", "--output", action="store", help = "Output filename")
+parser.add_argument("-o", "--output", action="store", help = "Output filename", metavar='FILENAME')
 parser.add_argument("-q", "--quiet", action="store_true", help = "Do not print the banner on startup")
 
 args = parser.parse_args()
 
 # Add user appended padding strings
-if args.append_padding:
-	for item in args.append_padding.split(','):
-		if item != '': common_paddings.append(item)
-			
+# ~ if args.append_padding:
+	# ~ for item in args.append_padding.split(','):
+		# ~ if item != '': common_paddings.append(item)
+
+# Append numbering
+
+_max = args.numbering_limit + 1 if args.numbering_limit and isinstance(args.numbering_limit, int) else 101
+
 
 # Create years list
 def bad_years_input():
@@ -66,22 +71,24 @@ LOGO = '\033[38;5;40m'
 LOGO2 = '\033[38;5;41m'
 GREEN = '\033[38;5;82m'
 ORANGE = '\033[0;38;5;214m'
+PRPL = '\033[0;38;5;26m'
 RED = '\033[1;31m'
 END = '\033[0m'
 BOLD = '\033[1m'
+
 
 def banner():
 
 	pad = '   '
 	print('\n')
-	print(f'{pad}{LOGO}█▀▄ ▄▀▀ █ █ █▀▄ ▄▀▄ █▄█ ▄▀▄ ▄▀▀ █▄█')
-	print(f'{pad}{LOGO2}█▀  ▄██ ▀▄█ █▄▀ ▀▄▀ █ █ █▀█ ▄██ █ █{END}')
+	print(f'{pad}{LOGO}█▀▄{PRPL}░{LOGO2}▄▀▀{PRPL}░{LOGO2}█{PRPL}▒{LOGO2}█{PRPL}░{LOGO2}█▀▄{PRPL}░{LOGO2}▄▀▄{PRPL}░{LOGO2}█▄█{PRPL}▒{LOGO2}▄▀▄{PRPL}░{LOGO2}▄▀▀{PRPL}░{LOGO2}█▄█')
+	print(f'{pad}{LOGO2}█▀{PRPL}▒▒{LOGO2}▄██{PRPL}░{LOGO2}▀▄█{PRPL}▒{LOGO2}█▄▀{PRPL}░{LOGO2}▀▄▀{PRPL}▒{LOGO2}█{PRPL}▒{LOGO2}█{PRPL}░{LOGO2}█▀█{PRPL}▒{LOGO2}▄██{PRPL}▒{LOGO2}█{PRPL}▒{LOGO2}█{END}')
 	print('\t         Created by t3l3machus\n')
 
 
 # ----------------( Base Settings )---------------- #
 mutations_cage = []
-mutations_final = []
+basic_mutations = []
 outfile = args.output if args.output else 'output.txt'
 trans_keys = []
 
@@ -115,7 +122,8 @@ elif (args.common_paddings_before or args.common_paddings_after) and (args.custo
 	common_paddings = []
 
 elif not (args.common_paddings_before or args.common_paddings_after):
-	pass
+	common_paddings = []
+	#pass
 
 else:
 	parser.print_usage()
@@ -126,7 +134,7 @@ if args.append_padding:
 	for val in args.append_padding.split(','):
 		if val.strip() != '' and val not in common_paddings: 
 			common_paddings.append(val)
-		
+
 
 # ----------------( Functions )---------------- #
 def evalTransformations(w):
@@ -149,10 +157,10 @@ def evalTransformations(w):
 	return [trans_chars, total]
 
 		
-						
+
 def mutate(tc):
 	
-	global trans_keys, mutations_cage, mutations_final
+	global trans_keys, mutations_cage, basic_mutations
 	
 	i = trans_keys.index(args.word[tc].lower())
 	trans = transformations[i][args.word[tc].lower()]
@@ -182,11 +190,11 @@ def mutate(tc):
 
 def mutations_handler(trans_chars, total):
 	
-	global mutations_cage, mutations_final
+	global mutations_cage, basic_mutations
 	
 	container = []
 	
-	for word in mutations_final:
+	for word in basic_mutations:
 		mutations_cage = [word.strip()]	
 		for tc in trans_chars:
 			results = mutate(tc)
@@ -194,12 +202,12 @@ def mutations_handler(trans_chars, total):
 	
 	for m_set in container:
 		for m in m_set:
-			mutations_final.append(m)
+			basic_mutations.append(m)
 	
-	mutations_final = unique(mutations_final)
+	basic_mutations = unique(basic_mutations)
 
 	with open(outfile, 'w') as wordlist:		
-		for m in mutations_final:
+		for m in basic_mutations:
 			wordlist.write(m + '\n')
 
 
@@ -224,7 +232,7 @@ def caseMutationsHandler(word):
 	case_mutations = mutateCase(word)
 
 	for m in case_mutations:
-		mutations_final.append(m)
+		basic_mutations.append(m)
 
 
 
@@ -240,9 +248,36 @@ def unique(l):
 
 
 
+def append_numbering():
+	
+	global _max
+	first_cycle = True
+	previous_list = []
+	lvl = args.append_numbering
+	
+	with open(outfile, 'a') as wordlist:
+		for word in basic_mutations:
+			for i in range(1, lvl+1):		
+				for k in range(1, _max):
+					if first_cycle:
+						wordlist.write(f'{word}{str(k).zfill(i)}\n')
+						wordlist.write(f'{word}_{str(k).zfill(i)}\n')
+						previous_list.append(f'{word}{str(k).zfill(i)}')
+						
+					else:
+						if previous_list[k - 1] != f'{word}{str(k).zfill(i)}':
+							wordlist.write(f'{word}{str(k).zfill(i)}\n')
+							wordlist.write(f'{word}_{str(k).zfill(i)}\n')
+							previous_list[k - 1] = f'{word}{str(k).zfill(i)}'
+
+				first_cycle = False
+	del previous_list
+	
+
+
 def mutate_years():
 	
-	current_mutations = mutations_final.copy()
+	current_mutations = basic_mutations.copy()
 	
 	with open(outfile, 'a') as wordlist:
 		for word in current_mutations:
@@ -250,15 +285,17 @@ def mutate_years():
 				wordlist.write(f'{word}{y}\n')
 				wordlist.write(f'{word}_{y}\n')
 				wordlist.write(f'{word}{y[2:]}\n')
-				mutations_final.append(f'{word}{y}')
-				mutations_final.append(f'{word}_{y}')
-				mutations_final.append(f'{word}{y[2:]}')		
+				basic_mutations.append(f'{word}{y}')
+				basic_mutations.append(f'{word}_{y}')
+				basic_mutations.append(f'{word}{y[2:]}')		
+	
+	del current_mutations
 
 
 
 def append_paddings_before():
 
-	current_mutations = mutations_final.copy()
+	current_mutations = basic_mutations.copy()
 	wfilter = []
 	
 	with open(outfile, 'a') as wordlist:
@@ -271,12 +308,14 @@ def append_paddings_before():
 				if f'{val}_{word}' not in wfilter:
 					wordlist.write(f'{val}_{word}\n')
 					wfilter.append(f'{val}_{word}')	
+					
+	del current_mutations, wfilter
 
 
 
 def append_paddings_after():
 
-	current_mutations = mutations_final.copy()
+	current_mutations = basic_mutations.copy()
 	wfilter = []
 	
 	with open(outfile, 'a') as wordlist:
@@ -289,6 +328,8 @@ def append_paddings_after():
 				if f'{word}_{val}' not in wfilter:	
 					wordlist.write(f'{word}_{val}\n')
 					wfilter.append(f'{word}_{val}')
+					
+	del current_mutations, wfilter
 
 
 
@@ -317,6 +358,35 @@ def calculate_output():
 	basic_size = total * (len(args.word) + 1)
 	size = basic_size
 	
+	# Words numbering mutations calc
+	if args.append_numbering:
+		global _max
+		word_len = len(args.word) + 1
+		first_cycle = True
+		previous_list = []
+		lvl = args.append_numbering
+		numbering_count = 0
+		numbering_size = 0
+			
+		for w in range(0, total):
+			for i in range(1, lvl+1):		
+				for k in range(1, _max):
+					n = str(k).zfill(i)
+					if first_cycle:					
+						numbering_count += 2						
+						numbering_size += (word_len * 2) + (len(n) * 2) + 1
+						previous_list.append(f'{w}{n}')
+						
+					else:
+						if previous_list[k - 1] != f'{w}{n}':
+							numbering_size += (word_len * 2) + (len(n) * 2) + 1
+							numbering_count += 2
+							previous_list[k - 1] = f'{w}{n}'
+
+				first_cycle = False
+
+		del previous_list
+		
 	# Adding years mutations calc
 	if args.years:
 		patterns = 3
@@ -344,7 +414,9 @@ def calculate_output():
 		elif args.common_paddings_after or args.common_paddings_before:
 			size += (basic_size * patterns * paddings_len) + pads_wlen_sum + _pads_wlen_sum
 			total += total * len(common_paddings) * 2
-
+	
+	total, size = total + numbering_count, size + numbering_size if args.append_numbering else chill()
+	
 	return [total, size]
 
 
@@ -358,9 +430,11 @@ def main():
 	
 	banner() if not args.quiet else chill()
 	
-	# Calculate output size
+	# Calculate output total words and size
 	total_size = calculate_output()
-	concent = input(f'[{ORANGE}Warning{END}] This operation will produce a total of {BOLD}{total_size[0]}{END} words, {BOLD}{total_size[1]}{END} bytes (if no duplicates occur). Are you sure you want to proceed? [y/n]: ')
+	print(f'[{GREEN}Info{END}] If you append custom padding values (-ap) duplicate words may occur due to the mutation patterns implemented by this tool.')	
+	print(f'[{GREEN}Info{END}] Duplicate values will be filtered automatically (if any).')	
+	concent = input(f'[{ORANGE}Warning{END}] This operation will produce a total of {BOLD}{total_size[0]}{END} words, {BOLD}{total_size[1]}{END} bytes (less, if duplicates occur). Are you sure you want to proceed? [y/n]: ')
 	
 	if concent.lower() not in ['y', 'yes']:
 		sys.exit(f'\n[{RED}X{END}] Aborting.')
@@ -374,6 +448,11 @@ def main():
 		print(f'[{GREEN}*{END}] Mutating word based on commonly used character-symbol substitutions... ')
 		trans = evalTransformations(args.word)	
 		mutations_handler(trans[0], trans[1])
+
+		# Append numbering
+		if args.append_numbering:
+			print(f'[{GREEN}*{END}] Appending numbering to each word mutation... ')
+			append_numbering()
 		
 		# Handle years
 		if args.years:
@@ -381,7 +460,7 @@ def main():
 			mutate_years()
 		
 		# Append common paddings		
-		if args.common_paddings_after:
+		if args.common_paddings_after or args.custom_paddings_only:
 			print(f'[{GREEN}*{END}] Appending common paddings after each word mutation... ')
 			append_paddings_after()
 			
