@@ -1,6 +1,6 @@
 # psudohash
 [![Python 3.x](https://img.shields.io/badge/python-3.x-yellow.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-red.svg)](https://github.com/t3l3machus/psudohash/blob/main/LICENSE) 
-<img src="https://img.shields.io/badge/Maintained%3F-Yes-CD8335">  
+<img src="https://img.shields.io/badge/Maintained%3F-Yes-23a82c">  
 
 ## Purpose
 psudohash is a keyword-based password generator that 
