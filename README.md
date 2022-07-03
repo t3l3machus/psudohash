@@ -3,7 +3,7 @@
 <img src="https://img.shields.io/badge/Maintained%3F-Yes-CD8335">  
 
 ## Purpose
-
+psudohash is a keyword-based password generator that 
 ## Screenshot
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/psudohash.png)
 
