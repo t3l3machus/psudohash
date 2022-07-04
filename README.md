@@ -23,7 +23,7 @@ transformations = [
 ]
 ```
 ### Individuals
-When it comes to people, i think we all have (more or less) set passwords using a mutation of one or more words that mean something to us, like our name or wife/kid/pet/band names, sticking the year we were born as padding at the end or maybe a super secure padding like "!@#". Well, guess what?
+When it comes to people, i think we all have (more or less) set passwords using a mutation of one or more words that mean something to us, like our name or wife/kid/pet/band names, sticking the year we were born at the end or maybe a super secure padding like "!@#". Well, guess what?
 
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/psudohash.png)
 
