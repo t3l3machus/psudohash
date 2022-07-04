@@ -11,12 +11,20 @@ System administrators and employees tend to use the Company's name (or a subset 
 
 The script includes a basic character substitution schema. You can add/modify character substitution patterns by edditing the source and following the data structure presented below (default):
 ```
-
+transformations = [
+	{'a' : '@'},
+	{'b' : '8'},
+	{'e' : '3'},
+	{'g' : ['9', '6']},
+	{'i' : ['1', '!']},
+	{'o' : '0'},
+	{'s' : ['$', '5']},
+	{'t' : '7'}
+]
 ```
 ### Individuals
-When it comes to people, i think we all have (more or less) set passwords using a mutation of one or more words that mean something to us, like our name or wife/kid/pet/band names, sticking the year we were born as padding at the end or maybe a supper secure padding like "!@#". Well guess what?
+When it comes to people, i think we all have (more or less) set passwords using a mutation of one or more words that mean something to us, like our name or wife/kid/pet/band names, sticking the year we were born as padding at the end or maybe a supper secure padding like "!@#". Well, guess what?
 
-## Screenshot
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/psudohash.png)
 
 ## Installation
@@ -32,6 +40,7 @@ chmod +x psudohash.py
 ```
 The help dialog [ -h, --help ] includes usage details and examples.
 ## Usage Tips
+If you add custom paddings and/or modify the predefined custom paddings directly in the script along with the --append-numbering option, there is a small chance of duplicate words occuring. psudohash includes word filtering controls but for the sake of speed those are limited.
 
 ## Future 
 I'm gathering information regarding commonly used password creation patterns to enhance the tool's capabilities.
