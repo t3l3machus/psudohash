@@ -33,7 +33,7 @@ Usage examples:
 
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate", required = True)
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
-parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 100. Must be used with -an.", type = int, metavar='LIMIT')
+parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 50. Must be used with -an.", type = int, metavar='LIMIT')
 parser.add_argument("-y", "--years", action="store", help = "Singe OR comma seperated OR range of years to be appended to each word mutation (Example: 2022 OR 1990,2017,2022 OR 1990-2000)")
 parser.add_argument("-ap", "--append-padding", action="store", help = "Add comma seperated values to common paddings (must be used with -cpb OR -cpa)", metavar='VALUES')
 parser.add_argument("-cpb", "--common-paddings-before", action="store_true", help = "Append common paddings before each mutated word") 
@@ -66,7 +66,7 @@ def unique(l):
 if args.numbering_limit and not args.append_numbering:
 	exit_with_msg('Option -nl must be used with -an.')
 	
-_max = args.numbering_limit + 1 if args.numbering_limit and isinstance(args.numbering_limit, int) else 101
+_max = args.numbering_limit + 1 if args.numbering_limit and isinstance(args.numbering_limit, int) else 51
 
 
 # Create years list		
