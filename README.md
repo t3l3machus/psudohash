@@ -40,8 +40,8 @@ chmod +x psudohash.py
 ```
 The help dialog [ -h, --help ] includes usage details and examples.
 ## Usage Tips
-1. Combining options --years and --append-numbering with a --numbering-limit >= 90 will most likely produce some duplicate words because of the mutation patterns implemented by the tool. 
-2. If you add custom paddings and/or modify the predefined custom paddings directly in the script along with the --append-numbering option, there is a small chance of duplicate words occuring. psudohash includes word filtering controls but for speed's sake, those are limited.
+1. Combining options `--years` and `--append-numbering` with a `--numbering-limit` ≥ last two digits of any year input, will most likely produce duplicate words because of the mutation patterns implemented by the tool. 
+2. If you add custom padding values and/or modify the predefined common padding values in the source code, in combination with multiple optional parameters, there is a small chance of duplicate words occurring. psudohash includes word filtering controls but for speed's sake, those are limited.
 
 ## Future 
 I'm gathering information regarding commonly used password creation patterns to enhance the tool's capabilities.
