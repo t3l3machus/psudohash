@@ -5,7 +5,7 @@
 ## Purpose
 psudohash is a password generator that imitates certain commonly used password creation patterns that humans use, like substituting a word's characters with symbols or numbers, using char-case variations, adding a common padding before or after the word etc. It is keyword-based and highly customizable.
 
-### Pentesting Corporate Environemnts
+### Pentesting Corporate Environments
 System administrators and employees tend to use the Company's name (or a subset of the name) as password for Wi-Fi access points, network devices and application or even domain accounts. With the company's name as input and the most basic options, psudohash will produce a wordlist with all possible character substitution and case variations and more. Take a look at the following example:
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/example.png)
 
