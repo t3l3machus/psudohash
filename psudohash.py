@@ -24,10 +24,10 @@ parser = argparse.ArgumentParser(
 Usage examples:
 
   Basic:
-      python3 psudohash.py -w <keyword> -cpa
+      python3 psudohash.py -w <keywords> -cpa
 	
   Thorough:
-      python3 psudohash.py -w <keyword> -cpa -cpb -an 3 -y 1990-2022
+      python3 psudohash.py -w <keywords> -cpa -cpb -an 3 -y 1990-2022
 '''
 	)
 
