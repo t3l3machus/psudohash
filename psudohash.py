@@ -3,7 +3,6 @@
 # Created by Panagiotis Chartas (t3l3machus)
 # https://github.com/t3l3machus
 
-
 import argparse, sys, itertools
 
 # Colors
@@ -32,7 +31,7 @@ Usage examples:
 '''
 	)
 
-parser.add_argument("-w", "--word", action="store", help = "Main word to transform", required = True)
+parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate", required = True)
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
 parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 100. Must be used with -an.", type = int, metavar='LIMIT')
 parser.add_argument("-y", "--years", action="store", help = "Singe OR comma seperated OR range of years to be appended to each word mutation (Example: 2022 OR 1990,2017,2022 OR 1990-2000)")
@@ -50,6 +49,19 @@ def exit_with_msg(msg):
 	print(f'\n[{RED}Debug{END}] {msg}\n')
 	sys.exit(1)	
 
+
+
+def unique(l):
+  
+	unique_list = []
+
+	for i in l:
+		if i not in unique_list:
+			unique_list.append(i)
+    
+	return unique_list
+
+
 # Append numbering
 if args.numbering_limit and not args.append_numbering:
 	exit_with_msg('Option -nl must be used with -an.')
@@ -59,6 +71,7 @@ _max = args.numbering_limit + 1 if args.numbering_limit and isinstance(args.numb
 
 # Create years list		
 if args.years:
+	
 	years = []
 	
 	if args.years.count(',') == 0 and args.years.count('-') == 0 and args.years.isdecimal() and int(args.years) >= 1000 and int(args.years) <= 3200:
@@ -123,12 +136,14 @@ if (args.custom_paddings_only or args.append_padding) and not (args.common_paddi
 elif (args.common_paddings_before or args.common_paddings_after) and not args.custom_paddings_only:
 
 	common_paddings = [
-		'12', '23', '34', '45', '56', '67', '78', '89', '90', \
+		'!', '@', '#', '$', '%', '^', '&', '*', ',', '.', '?', '-' \
 		'123', '234', '345', '456', '567', '678', '789', '890',\
-		'.', '!', ';', '?', '!@', '@#', '#$', '$%', '%^', '^&', '&*', '*(', '()', \
+		'!@', '@#', '#$', '$%', '%^', '^&', '&*', '*(', '()', \
 		'!@#', '@#$', '#$%', '$%^', '%^&', '^&*', '&*(', '*()', ')_+',\
-		'1!1', '!@!', '@#@', '$$$', '!@#$%', '123!@#', '12345'
-		#'!!!', '@@@', '###', '$$$', '%%%', '^^^', '&&&', '***', '(((', ')))', '---', '+++'
+		'1!1', '2@2', '3#3', '4$4', '5%5', '6^6', '7&7', '8*8', '9(9', '0)0',\
+		'@2@', '#3#', '$4$', '%5%', '^6^', '&7&', '*8*', '(9(', \
+		'!@!', '@#@', '!@#$%', '1234', '12345', '123456', '123!@#', \
+		'!!!', '@@@', '###', '$$$', '%%%', '^^^', '&&&', '***', '(((', ')))', '---', '+++'
 	]
 
 elif (args.common_paddings_before or args.common_paddings_after) and (args.custom_paddings_only and args.append_padding):
@@ -146,14 +161,17 @@ if args.append_padding:
 			common_paddings.append(val)
 
 
+if (args.common_paddings_before or args.common_paddings_after):
+	common_paddings = unique(common_paddings)
+
 # ----------------( Functions )---------------- #
 def evalTransformations(w):
 	
 	trans_chars = []
 	total = 1
-	c = 0
-	
+	c = 0	
 	w = list(w)
+	
 	for char in w:
 		for t in transformations:
 			if char in t.keys():
@@ -168,12 +186,12 @@ def evalTransformations(w):
 
 		
 
-def mutate(tc):
+def mutate(tc, word):
 	
 	global trans_keys, mutations_cage, basic_mutations
 	
-	i = trans_keys.index(args.word[tc].lower())
-	trans = transformations[i][args.word[tc].lower()]
+	i = trans_keys.index(word[tc].lower())
+	trans = transformations[i][word[tc].lower()]
 	limit = len(trans) * len(mutations_cage)
 	c = 0
 	
@@ -198,7 +216,7 @@ def mutate(tc):
 	
 
 
-def mutations_handler(trans_chars, total):
+def mutations_handler(kword, trans_chars, total):
 	
 	global mutations_cage, basic_mutations
 	
@@ -207,7 +225,7 @@ def mutations_handler(trans_chars, total):
 	for word in basic_mutations:
 		mutations_cage = [word.strip()]	
 		for tc in trans_chars:
-			results = mutate(tc)
+			results = mutate(tc, kword)
 		container.append(results)
 	
 	for m_set in container:
@@ -216,18 +234,9 @@ def mutations_handler(trans_chars, total):
 	
 	basic_mutations = unique(basic_mutations)
 
-	with open(outfile, 'w') as wordlist:		
+	with open(outfile, 'a') as wordlist:		
 		for m in basic_mutations:
 			wordlist.write(m + '\n')
-
-
-
-def grab_wordlist():
-	
-	wordlist = open(outfile, 'r')
-	words = wordlist.readlines()
-	wordlist.close()
-	return words
 
 
 
@@ -237,24 +246,21 @@ def mutateCase(word):
 
 
 
-def caseMutationsHandler(word):
+def caseMutationsHandler(word, mutability):
 	
+	global basic_mutations
 	case_mutations = mutateCase(word)
 
 	for m in case_mutations:
 		basic_mutations.append(m)
 
-
-
-def unique(l):
-  
-	unique_list = []
-
-	for i in l:
-		if i not in unique_list:
-			unique_list.append(i)
-    
-	return unique_list
+	if not mutability:
+		
+		basic_mutations = unique(basic_mutations)
+		
+		with open(outfile, 'a') as wordlist:		
+			for m in basic_mutations:
+				wordlist.write(m + '\n')
 
 
 
@@ -341,7 +347,7 @@ def append_paddings_after():
 
 
 
-def calculate_output():
+def calculate_output(keyw):
 	
 	global trans_keys
 	
@@ -354,24 +360,24 @@ def calculate_output():
 	numbering_size = 0
 	
 	# Basic mutations calc
-	for char in args.word:
+	for char in keyw:
 		if char in trans_keys:
-			i = trans_keys.index(args.word[c].lower())
-			trans = transformations[i][args.word[c].lower()]
+			i = trans_keys.index(keyw[c].lower())
+			trans = transformations[i][keyw[c].lower()]
 			basic_total *= (len(trans) + 2)		
 		else:
-			basic_total *= 2
+			basic_total = basic_total * 2 if char.isalpha() else basic_total
 			
 		c += 1
 	
 	total = basic_total 
-	basic_size = total * (len(args.word) + 1)
+	basic_size = total * (len(keyw) + 1)
 	size = basic_size
 	
 	# Words numbering mutations calc
 	if args.append_numbering:
 		global _max
-		word_len = len(args.word) + 1
+		word_len = len(keyw) + 1
 		first_cycle = True
 		previous_list = []
 		lvl = args.append_numbering
@@ -423,10 +429,20 @@ def calculate_output():
 			size += (basic_size * patterns * paddings_len) + pads_wlen_sum + _pads_wlen_sum
 			total += total * len(common_paddings) * 2
 	
-	size += numbering_size
-	fsize = round(((size/1000)/1000), 1) if size > 100000 else size
-	prefix = 'bytes' if size <= 100000 else 'MB'
-	return [total + numbering_count, f'{fsize} {prefix}']
+	return [total + numbering_count, size + numbering_size]
+
+
+
+def check_mutability(word):
+	
+	global trans_keys
+	m = 0
+	
+	for char in word:
+		if char in trans_keys:
+			m += 1
+	
+	return m
 
 
 
@@ -439,51 +455,80 @@ def main():
 	
 	banner() if not args.quiet else chill()
 	
-	# Calculate total words and size of output
-	total_size = calculate_output()
-	dup_msg  = ''
+	global basic_mutations, mutations_cage
+	keywords = []
 	
-	if args.append_padding:
-		print(f'[{MAIN}Info{END}] If you append custom padding values (-ap) duplicate words may occur due to the mutation patterns implemented by this tool.')	
-		print(f'[{MAIN}Info{END}] Duplicate values are filtered automatically (if any).')
-		dup_msg  = ' (less, if duplicates occur)'
-		
-	concent = input(f'[{ORANGE}Warning{END}] This operation will produce a total of {BOLD}{total_size[0]}{END} words, {BOLD}{total_size[1]}{END}{dup_msg}. Are you sure you want to proceed? [y/n]: ')
+	for w in args.words.split(','):
+		if w.strip().isdecimal():
+			exit_with_msg('Unable to mutate digit-only keywords.')
+			
+		elif w.strip() not in [None, '']:
+			keywords.append(w.strip())
+	
+	# Calculate total words and size of output
+	total_size = [0, 0]
+	
+	for keyw in keywords:
+		count_size = calculate_output(keyw.strip().lower())
+		total_size[0] += count_size[0]
+		total_size[1] += count_size[1]
+	
+	size = round(((total_size[1]/1000)/1000), 1) if total_size[1] > 100000 else total_size[1]
+	prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
+	fsize = f'{size} {prefix}'
+	
+	print(f'[{MAIN}Info{END}] Calculating total words and size...')
+	concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
 	
 	if concent.lower() not in ['y', 'yes']:
 		sys.exit(f'\n[{RED}X{END}] Aborting.')
 		
 	else:
-		# Produce case mutations
-		print(f'[{GREEN}*{END}] Producing character case-based transformations... ')		
-		caseMutationsHandler(args.word)	
 		
-		# Produce char substitution mutations
-		print(f'[{GREEN}*{END}] Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
-		trans = evalTransformations(args.word)	
-		mutations_handler(trans[0], trans[1])
-
-		# Append numbering
-		if args.append_numbering:
-			print(f'[{GREEN}*{END}] Appending numbering to each word mutation... ')
-			append_numbering()
+		open(outfile, "w").close()
 		
-		# Handle years
-		if args.years:
-			print(f'[{GREEN}*{END}] Appending year patterns after each word mutation... ')
-			mutate_years()
-		
-		# Append common paddings		
-		if args.common_paddings_after or args.custom_paddings_only:
-			print(f'[{GREEN}*{END}] Appending common paddings after each word mutation... ')
-			append_paddings_after()
+		for word in keywords:
+			print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
+			mutability = check_mutability(word.lower())
+					
+			# Produce case mutations
+			print(f' ├─ Producing character case-based transformations... ')
+			caseMutationsHandler(word.lower(), mutability)	
 			
-		if args.common_paddings_before:
-			print(f'[{GREEN}*{END}] Appending common paddings before each word mutation... ')
-			append_paddings_before()
-		
-		print(f'[{GREEN}*{END}] Completed! List saved in {outfile}')
+			if mutability:
+				# Produce char substitution mutations
+				print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
+				trans = evalTransformations(word.lower())
+				mutations_handler(word, trans[0], trans[1])
+				
+			else:
+				print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
 
+			# Append numbering
+			if args.append_numbering:
+				print(f' ├─ Appending numbering to each word mutation... ')
+				append_numbering()
+			
+			# Handle years
+			if args.years:
+				print(f' ├─ Appending year patterns after each word mutation... ')
+				mutate_years()
+			
+			# Append common paddings		
+			if args.common_paddings_after or args.custom_paddings_only:
+				print(f' ├─ Appending common paddings after each word mutation... ')
+				append_paddings_after()
+				
+			if args.common_paddings_before:
+				print(f' ├─ Appending common paddings before each word mutation... ')
+				append_paddings_before()
+			
+			basic_mutations = []
+			mutations_cage = []
+			print(f' └─ Done!')
+		
+		print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
+			
 
 if __name__ == '__main__':
 	main()
