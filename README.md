@@ -40,7 +40,7 @@ chmod +x psudohash.py
 ```
 The help dialog [ -h, --help ] includes usage details and examples.
 ## Usage Tips
-If you add custom paddings and/or modify the predefined custom paddings directly in the script along with the --append-numbering option, there is a small chance of duplicate words occuring. psudohash includes word filtering controls but for the sake of speed those are limited.
+If you add custom paddings and/or modify the predefined custom paddings directly in the script along with the --append-numbering option, there is a small chance of duplicate words occuring. psudohash includes word filtering controls but for speed's sake, those are limited.
 
 ## Future 
 I'm gathering information regarding commonly used password creation patterns to enhance the tool's capabilities.
