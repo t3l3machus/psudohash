@@ -3,7 +3,7 @@
 <img src="https://img.shields.io/badge/Maintained%3F-Yes-23a82c">  
 
 ## Purpose
-psudohash is a password generator that imitates certain password creation patterns commonly used by humans, like substituting a word's letters with symbols or numbers, using char-case variations, adding a common padding before or after the word and more. It is keyword-based and highly customizable.
+psudohash is a password list generator for orchestrating brute force attacks. It imitates certain password creation patterns commonly used by humans, like substituting a word's letters with symbols or numbers, using char-case variations, adding a common padding before or after the word and more. It is keyword-based and highly customizable.
 
 ### Pentesting Corporate Environments
 System administrators and employees tend to use the Company's name (or a subset of the name) as password for Wi-Fi access points, network devices and application or even domain accounts. With the company's name as input and the most basic options, psudohash will produce a wordlist with all possible character substitutions, char-case variations and more. Take a look at the following example:
