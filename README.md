@@ -9,7 +9,7 @@ psudohash is a password generator that imitates certain password creation patter
 System administrators and employees tend to use the Company's name (or a subset of the name) as password for Wi-Fi access points, network devices and application or even domain accounts. With the company's name as input and the most basic options, psudohash will produce a wordlist with all possible character substitution, char-case variations and more. Take a look at the following example:
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/micro-example.png)
 
-The script includes a basic character substitution schema. You can add/modify character substitution patterns by edditing the source and following the data structure presented below (default):
+The script includes a basic character substitution schema. You can add/modify character substitution patterns by editing the source and following the data structure presented below (default):
 ```
 transformations = [
 	{'a' : '@'},
