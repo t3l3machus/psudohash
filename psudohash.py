@@ -65,7 +65,10 @@ def unique(l):
 # Append numbering
 if args.numbering_limit and not args.append_numbering:
 	exit_with_msg('Option -nl must be used with -an.')
-	
+
+if args.append_numbering <= 0:
+	exit_with_msg('Numbering level must be > 0.')
+
 _max = args.numbering_limit + 1 if args.numbering_limit and isinstance(args.numbering_limit, int) else 51
 
 
