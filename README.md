@@ -6,7 +6,7 @@
 psudohash is a password list generator for orchestrating brute force attacks. It imitates certain password creation patterns commonly used by humans, like substituting a word's letters with symbols or numbers, using char-case variations, adding a common padding before or after the word and more. It is keyword-based and highly customizable.
 
 ### Pentesting Corporate Environments
-System administrators and other employees often use a mutated version of the Company's name to set passwords (e.g. Am@z0n_2022). This is commonly the case for network devices (Wi-Fi access points, switches, routers, etc), application or even domain accounts. With the most basic options, psudohash can generate a wordlist with all possible mutations of one or multiple keywords, based on common character substitution patterns (customizable), case variations, commonly used paddings and more. Take a look at the following example:
+System administrators and other employees often use a mutated version of the Company's name to set passwords (e.g. Am@z0n_2022). This is commonly the case for network devices (Wi-Fi access points, switches, routers, etc), application or even domain accounts. With the most basic options, psudohash can generate a wordlist with all possible mutations of one or multiple keywords, based on common character substitution patterns (customizable), case variations, strings commonly used as padding and more. Take a look at the following example:
 ![usage_example_png](https://raw.github.com/t3l3machus/psudohash/master/Screenshots/ms-example.png)
 
 The script includes a basic character substitution schema. You can add/modify character substitution patterns by editing the source and following the data structure logic presented below (default):
