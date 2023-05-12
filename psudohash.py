@@ -1,6 +1,6 @@
 #!/bin/python3
 #
-# Created by Panagiotis Chartas (t3l3machus)
+# Author: Panagiotis Chartas (t3l3machus)
 # https://github.com/t3l3machus
 
 import argparse, sys, itertools
@@ -27,7 +27,7 @@ Usage examples:
       python3 psudohash.py -w <keywords> -cpa
 	
   Thorough:
-      python3 psudohash.py -w <keywords> -cpa -cpb -an 3 -y 1990-2022
+      python3 psudohash.py -w <keywords> -cpa -an 3 -y 1990-2022
 '''
 	)
 
@@ -149,7 +149,7 @@ outfile = args.output if args.output else 'output.txt'
 trans_keys = []
 
 transformations = [
-	{'a' : '@'},
+	{'a' : ['@', '4']},
 	{'b' : '8'},
 	{'e' : '3'},
 	{'g' : ['9', '6']},
@@ -163,23 +163,21 @@ for t in transformations:
 	for key in t.keys():
 		trans_keys.append(key)
 
-# Paddings
+# Common Padding Values
 if (args.custom_paddings_only or args.append_padding) and not (args.common_paddings_before or args.common_paddings_after):
 	exit_with_msg('Options -ap and -cpo must be used with -cpa or -cpb.')
 	
 	
 elif (args.common_paddings_before or args.common_paddings_after) and not args.custom_paddings_only:
+	
+	try:
+		f = open('common_padding_values.txt', 'r')
+		content = f.readlines()
+		common_paddings = [val.strip() for val in content]
+		f.close()
 
-	common_paddings = [
-		'!', '@', '#', '$', '%', '^', '&', '*', ',', '.', '?', '-' \
-		'123', '234', '345', '456', '567', '678', '789', '890',\
-		'!@', '@#', '#$', '$%', '%^', '^&', '&*', '*(', '()', \
-		'!@#', '@#$', '#$%', '$%^', '%^&', '^&*', '&*(', '*()', ')_+',\
-		'1!1', '2@2', '3#3', '4$4', '5%5', '6^6', '7&7', '8*8', '9(9', '0)0',\
-		'@2@', '#3#', '$4$', '%5%', '^6^', '&7&', '*8*', '(9(', \
-		'!@!', '@#@', '!@#$%', '1234', '12345', '123456', '123!@#', \
-		'!!!', '@@@', '###', '$$$', '%%%', '^^^', '&&&', '***', '(((', ')))', '---', '+++'
-	]
+	except:
+		exit_with_msg('File "common_padding_values.txt" not found.')
 
 elif (args.common_paddings_before or args.common_paddings_after) and (args.custom_paddings_only and args.append_padding):
 	common_paddings = []
@@ -198,6 +196,15 @@ if args.append_padding:
 
 if (args.common_paddings_before or args.common_paddings_after):
 	common_paddings = unique(common_paddings)
+
+
+# ----------------( Functions )---------------- #
+# The following list is used to create variations of password values and appended years.
+# For example, a passwd value {passwd} will be mutated to "{passwd}{seperator}{year}"
+# for each of the symbols included in the list below.
+year_seperators = ['', '_', '-', '@']
+
+
 
 # ----------------( Functions )---------------- #
 def evalTransformations(w):
@@ -332,13 +339,12 @@ def mutate_years():
 	
 	with open(outfile, 'a') as wordlist:
 		for word in current_mutations:
-			for y in years:				
-				wordlist.write(f'{word}{y}\n')
-				wordlist.write(f'{word}_{y}\n')
-				wordlist.write(f'{word}{y[2:]}\n')
-				basic_mutations.append(f'{word}{y}')
-				basic_mutations.append(f'{word}_{y}')
-				basic_mutations.append(f'{word}{y[2:]}')		
+			for y in years:
+				for sep in year_seperators:		
+					wordlist.write(f'{word}{sep}{y}\n')				
+					basic_mutations.append(f'{word}{sep}{y}')
+					wordlist.write(f'{word}{sep}{y[2:]}\n')
+					basic_mutations.append(f'{word}{sep}{y[2:]}')		
 	
 	del current_mutations
 
@@ -438,13 +444,17 @@ def calculate_output(keyw):
 		
 	# Adding years mutations calc
 	if args.years:
-		patterns = 3
+		patterns = len(year_seperators) * 2
 		year_chars = 4
-		_year = 5
 		year_short = 2
-		yrs = len(years)
-		size += (basic_size * patterns * yrs) + (basic_total * year_chars * yrs) + (basic_total * _year * yrs) + (basic_total * year_short * yrs)
-		total += total * len(years) * 3
+		years_len = len(years)
+		size += (basic_size * patterns * years_len)
+
+		for sep in year_seperators:
+			size += (basic_total * (year_chars + len(sep)) * years_len)
+			size += (basic_total * (year_short  + len(sep)) * years_len)
+
+		total += total * len(years) * patterns
 		basic_total = total
 		basic_size = size
 	
@@ -512,8 +522,13 @@ def main():
 	prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
 	fsize = f'{size} {prefix}'
 	
-	print(f'[{MAIN}Info{END}] Calculating total words and size...')
-	concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
+	print(f'[{MAIN}Info{END}] Calculating output length and size...')
+
+	# Inform user about the output size
+	try:
+		concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
+	except KeyboardInterrupt:
+		exit('\n')
 	
 	if concent.lower() not in ['y', 'yes']:
 		sys.exit(f'\n[{RED}X{END}] Aborting.')
