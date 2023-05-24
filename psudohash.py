@@ -41,6 +41,7 @@ parser.add_argument("-cpa", "--common-paddings-after", action="store_true", help
 parser.add_argument("-cpo", "--custom-paddings-only", action="store_true", help = "Use only user provided paddings for word mutations (must be used with -ap AND (-cpb OR -cpa))") 
 parser.add_argument("-o", "--output", action="store", help = "Output filename (default: output.txt)", metavar='FILENAME')
 parser.add_argument("-q", "--quiet", action="store_true", help = "Do not print the banner on startup")
+parser.add_argument("-b", "--batch", action="store_true", help = "Create wordlist without user confirmation")
 
 args = parser.parse_args()
 
@@ -526,7 +527,10 @@ def main():
 
 	# Inform user about the output size
 	try:
-		concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
+		if args.batch:
+			concent = "y"
+		else:
+			concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
 	except KeyboardInterrupt:
 		exit('\n')
 	
