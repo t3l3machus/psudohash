@@ -31,11 +31,13 @@ Usage examples:
 '''
 	)
 
-parser.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
-parser.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
-parser.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
+random_group = parser.add_mutually_exclusive_group()
+
+random_group.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
+random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
+random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
+random_group.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
 parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password")
-parser.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
 
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
