@@ -31,11 +31,10 @@ Usage examples:
 '''
 	)
 
-
 parser.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
 parser.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
 parser.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
-#parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password") # TODO: may not use this
+parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password")
 parser.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
 
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
@@ -67,7 +66,6 @@ def unique(l):
 			unique_list.append(i)
     
 	return unique_list
-
 
 # Append numbering
 if args.numbering_limit and not args.append_numbering:
@@ -170,8 +168,8 @@ if not args.words:
 	elif args.numbers:
 		random_sequence = "1234567890"
 
-	#if args.special_characters:
-	#	random_sequence += "~`! @#$%^&*()_-+={[}]|\:;\"'<,>.?/"
+	if args.special_characters:
+		random_sequence += "~`! @#$%^&*()_-+={[}]|\:;\"'<,>.?/"
 
 transformations = [
 	{'a' : ['@', '4']},
@@ -615,11 +613,12 @@ def main():
 				mutations_cage = []
 				print(f' └─ Done!')
 
-				print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
+			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
 			
-	else:
+	elif (args.random_alphanumeric or args.random_uppercase_alphanumeric 
+	or args.random_uppercase_lowercase_alphanumeric or args.numbers):
 		choice = ""
-		#special_chars = ""
+		special_characters_message = ""
 		if args.random_alphanumeric:
 			choice = "lowercase alphanumeric"
 
@@ -632,10 +631,10 @@ def main():
 		elif args.numbers:
 			choice = "numeric"
 
-		#if args.special_characters:
-		#	special_chars = f" with {GREEN}special characters{END}"
+		if args.special_characters:
+			special_characters_message = f" with {GREEN}special characters{END}"
 
-		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password...')
+		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password{special_characters_message}...')
 		with open(outfile, 'w') as output:
 			output.write(generate_random_password())
 
