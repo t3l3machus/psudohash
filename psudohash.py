@@ -31,13 +31,13 @@ Usage examples:
 '''
 	)
 
-'''
+
 parser.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
 parser.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
 parser.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
 parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password") # TODO: may not use this
 parser.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
-'''
+
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
 parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 50. Must be used with -an.", type = int, metavar='LIMIT')
@@ -154,6 +154,21 @@ mutations_cage = []
 basic_mutations = []
 outfile = args.output if args.output else 'output.txt'
 trans_keys = []
+random_sequence = []
+
+# If the user wants a random alphanumeric sequence, set the selection with appropriate characters
+if not args.words:
+	if args.random_alphanumeric:
+		random_sequence = ["abcdefghijklmnopqrstuvwxyz1234567890"]
+
+	elif args.random_uppercase_alphanumeric:
+		random_sequence = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"]
+
+	elif args.random_uppercase_lowercase_alphanumeric:
+		random_sequence = ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"]
+
+	elif args.numbers:
+		random_sequence = ["1234567890"]
 
 transformations = [
 	{'a' : ['@', '4']},
@@ -588,6 +603,17 @@ def main():
 			
 			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
 	
+	elif args.random_alphanumeric:
+		pass
+
+	elif args.random_uppercase_alphanumeric:
+		pass
+
+	elif args.random_uppercase_lowercase_alphanumeric:
+		pass
+
+	elif args.numbers:
+		pass
 
 if __name__ == '__main__':
 	main()
