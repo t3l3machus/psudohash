@@ -3,7 +3,7 @@
 # Author: Panagiotis Chartas (t3l3machus)
 # https://github.com/t3l3machus
 
-import argparse, sys, itertools
+import argparse, sys, itertools, random
 
 # Colors
 MAIN = '\033[38;5;50m'
@@ -35,7 +35,7 @@ Usage examples:
 parser.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
 parser.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
 parser.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
-parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password") # TODO: may not use this
+#parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password") # TODO: may not use this
 parser.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
 
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
@@ -154,21 +154,24 @@ mutations_cage = []
 basic_mutations = []
 outfile = args.output if args.output else 'output.txt'
 trans_keys = []
-random_sequence = []
+random_sequence = ""
 
-# If the user wants a random alphanumeric sequence, set the selection with appropriate characters
+# If the user wants a random alphanumeric password, set the selection with appropriate characters
 if not args.words:
 	if args.random_alphanumeric:
-		random_sequence = ["abcdefghijklmnopqrstuvwxyz1234567890"]
+		random_sequence = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 	elif args.random_uppercase_alphanumeric:
-		random_sequence = ["ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"]
+		random_sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 	elif args.random_uppercase_lowercase_alphanumeric:
-		random_sequence = ["abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"]
+		random_sequence = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 	elif args.numbers:
-		random_sequence = ["1234567890"]
+		random_sequence = "1234567890"
+
+	#if args.special_characters:
+	#	random_sequence += "~`! @#$%^&*()_-+={[}]|\:;\"'<,>.?/"
 
 transformations = [
 	{'a' : ['@', '4']},
@@ -518,6 +521,17 @@ def chill():
 
 
 
+def generate_random_password():
+	length = 12
+
+	# If the password is only numeric, set length to 9
+	if random_sequence.isnumeric():
+		length = 9
+	
+	pwd = ''.join(random.choice(random_sequence) for _ in range(length))
+	return pwd
+
+
 def main():
 	
 	banner() if not args.quiet else chill()
@@ -600,20 +614,35 @@ def main():
 				basic_mutations = []
 				mutations_cage = []
 				print(f' └─ Done!')
+
+				print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
 			
-			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
+	else:
+		choice = ""
+		#special_chars = ""
+		if args.random_alphanumeric:
+			choice = "lowercase alphanumeric"
+
+		elif args.random_uppercase_alphanumeric:
+			choice = "uppercase alphanumeric"
+
+		elif args.random_uppercase_lowercase_alphanumeric:
+			choice = "uppercase and lowercase alphanumeric"
+
+		elif args.numbers:
+			choice = "numeric"
+
+		#if args.special_characters:
+		#	special_chars = f" with {GREEN}special characters{END}"
+
+		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password...')
+		with open(outfile, 'w') as output:
+			output.write(generate_random_password())
+
+		print(f' └─ Done!')
+		
+		print(f'\n[{MAIN}Info{END}] Completed! Password saved in {outfile}\n')
+
 	
-	elif args.random_alphanumeric:
-		pass
-
-	elif args.random_uppercase_alphanumeric:
-		pass
-
-	elif args.random_uppercase_lowercase_alphanumeric:
-		pass
-
-	elif args.numbers:
-		pass
-
 if __name__ == '__main__':
 	main()
