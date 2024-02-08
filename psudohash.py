@@ -31,7 +31,14 @@ Usage examples:
 '''
 	)
 
-parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate", required = True)
+'''
+parser.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
+parser.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
+parser.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
+parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in the password") # TODO: may not use this
+parser.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single password of 9 random digits")
+'''
+parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
 parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 50. Must be used with -an.", type = int, metavar='LIMIT')
 parser.add_argument("-y", "--years", action="store", help = "Singe OR comma seperated OR range of years to be appended to each word mutation (Example: 2022 OR 1990,2017,2022 OR 1990-2000)")
@@ -503,82 +510,84 @@ def main():
 	global basic_mutations, mutations_cage
 	keywords = []
 	
-	for w in args.words.split(','):
-		if w.strip().isdecimal():
-			exit_with_msg('Unable to mutate digit-only keywords.')
-			
-		elif w.strip() not in [None, '']:
-			keywords.append(w.strip())
-	
-	# Calculate total words and size of output
-	total_size = [0, 0]
-	
-	for keyw in keywords:
-		count_size = calculate_output(keyw.strip().lower())
-		total_size[0] += count_size[0]
-		total_size[1] += count_size[1]
-	
-	size = round(((total_size[1]/1000)/1000), 1) if total_size[1] > 100000 else total_size[1]
-	prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
-	fsize = f'{size} {prefix}'
-	
-	print(f'[{MAIN}Info{END}] Calculating output length and size...')
+	if args.words:
+		# This is necessary only when using arg -w
+		for w in args.words.split(','):
+			if w.strip().isdecimal():
+				exit_with_msg('Unable to mutate digit-only keywords.')
+				
+			elif w.strip() not in [None, '']:
+				keywords.append(w.strip())
+		
+		# Calculate total words and size of output
+		total_size = [0, 0]
+		
+		for keyw in keywords:
+			count_size = calculate_output(keyw.strip().lower())
+			total_size[0] += count_size[0]
+			total_size[1] += count_size[1]
+		
+		size = round(((total_size[1]/1000)/1000), 1) if total_size[1] > 100000 else total_size[1]
+		prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
+		fsize = f'{size} {prefix}'
+		
+		print(f'[{MAIN}Info{END}] Calculating output length and size...')
 
-	# Inform user about the output size
-	try:
-		concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
-	except KeyboardInterrupt:
-		exit('\n')
-	
-	if concent.lower() not in ['y', 'yes']:
-		sys.exit(f'\n[{RED}X{END}] Aborting.')
+		# Inform user about the output size
+		try:
+			concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
+		except KeyboardInterrupt:
+			exit('\n')
 		
-	else:
-		
-		open(outfile, "w").close()
-		
-		for word in keywords:
-			print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
-			mutability = check_mutability(word.lower())
+		if concent.lower() not in ['y', 'yes']:
+			sys.exit(f'\n[{RED}X{END}] Aborting.')
+			
+		else:
+			
+			open(outfile, "w").close()
+			
+			for word in keywords:
+				print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
+				mutability = check_mutability(word.lower())
+						
+				# Produce case mutations
+				print(f' ├─ Producing character case-based transformations... ')
+				caseMutationsHandler(word.lower(), mutability)	
+				
+				if mutability:
+					# Produce char substitution mutations
+					print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
+					trans = evalTransformations(word.lower())
+					mutations_handler(word, trans[0], trans[1])
 					
-			# Produce case mutations
-			print(f' ├─ Producing character case-based transformations... ')
-			caseMutationsHandler(word.lower(), mutability)	
-			
-			if mutability:
-				# Produce char substitution mutations
-				print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
-				trans = evalTransformations(word.lower())
-				mutations_handler(word, trans[0], trans[1])
-				
-			else:
-				print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
+				else:
+					print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
 
-			# Append numbering
-			if args.append_numbering:
-				print(f' ├─ Appending numbering to each word mutation... ')
-				append_numbering()
-			
-			# Handle years
-			if args.years:
-				print(f' ├─ Appending year patterns after each word mutation... ')
-				mutate_years()
-			
-			# Append common paddings		
-			if args.common_paddings_after or args.custom_paddings_only:
-				print(f' ├─ Appending common paddings after each word mutation... ')
-				append_paddings_after()
+				# Append numbering
+				if args.append_numbering:
+					print(f' ├─ Appending numbering to each word mutation... ')
+					append_numbering()
 				
-			if args.common_paddings_before:
-				print(f' ├─ Appending common paddings before each word mutation... ')
-				append_paddings_before()
+				# Handle years
+				if args.years:
+					print(f' ├─ Appending year patterns after each word mutation... ')
+					mutate_years()
+				
+				# Append common paddings		
+				if args.common_paddings_after or args.custom_paddings_only:
+					print(f' ├─ Appending common paddings after each word mutation... ')
+					append_paddings_after()
+					
+				if args.common_paddings_before:
+					print(f' ├─ Appending common paddings before each word mutation... ')
+					append_paddings_before()
+				
+				basic_mutations = []
+				mutations_cage = []
+				print(f' └─ Done!')
 			
-			basic_mutations = []
-			mutations_cage = []
-			print(f' └─ Done!')
-		
-		print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
-			
+			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
+	
 
 if __name__ == '__main__':
 	main()
