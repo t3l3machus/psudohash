@@ -37,10 +37,10 @@ Usage examples:
 # Random generation flags do not conflict with keyword flags, and keyword flags are prioritized
 random_group = parser.add_mutually_exclusive_group()
 
-random_group.add_argument("-ra", "--random-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single lowercase alphanumeric password of specified length (default 12)")
-random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single uppercase alphanumeric password of specified length (default 12)")
-random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single upper- and lowercase alphanumeric password of specified length (default 12)")
-random_group.add_argument("-n", "--numbers", action = "store", type = int, nargs = "?", const = "9", help = "Generate a single random numeric of specified length (default 9)")
+random_group.add_argument("-ra", "--random-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single lowercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single uppercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single upper- and lowercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-n", "--numbers", action = "store", type = int, nargs = "?", const = "9", help = "Generate a single random numeric of specified length (default 9, must be >= 1)")
 
 # Special characters flag does not interfere with other code.
 parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in any random password, does not work alone")
@@ -633,20 +633,44 @@ def main():
 		special_characters_message = ""
 
 		if args.random_alphanumeric:
+
 			choice = "lowercase alphanumeric"
-			password_length = args.random_alphanumeric
+
+			if args.random_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_alphanumeric
+
 
 		elif args.random_uppercase_alphanumeric:
+
 			choice = "uppercase alphanumeric"
-			password_length = args.random_uppercase_alphanumeric
+
+			if args.random_uppercase_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_uppercase_alphanumeric
+
 
 		elif args.random_uppercase_lowercase_alphanumeric:
+
 			choice = "uppercase and lowercase alphanumeric"
-			password_length = args.random_uppercase_lowercase_alphanumeric
+
+			if args.random_uppercase_lowercase_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_uppercase_lowercase_alphanumeric
+
 
 		elif args.numbers:
+
 			choice = "numeric"
-			password_length = args.random_numbers
+
+			if args.numbers < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.numbers
+
 
 		if args.special_characters:
 			special_characters_message = f" with {GREEN}special characters{END}"
