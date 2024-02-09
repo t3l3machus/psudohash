@@ -4,7 +4,7 @@
 <img src="https://img.shields.io/badge/Developed%20on-kali%20linux-blueviolet">  
 
 ## Purpose
-Psudohash is a password list generator for orchestrating brute force attacks and cracking hashes. It imitates certain password creation patterns commonly used by humans, like substituting a word's letters with symbols or numbers (leet), using char-case variations, adding a common padding before or after the main passphrase and more. It is keyword-based and highly customizable. 🎥 -> [Video Presentation](https://www.youtube.com/watch?v=oj3zjApOOGc) Psudohash also features single random password generation, able to generate random passwords in lowercase, uppercase, upper- and lowercase, and numeric, all with the option to add special characters. 
+Psudohash is a password list generator for orchestrating brute force attacks and cracking hashes. It imitates certain password creation patterns commonly used by humans, like substituting a word's letters with symbols or numbers (leet), using char-case variations, adding a common padding before or after the main passphrase and more. It is keyword-based and highly customizable. 🎥 -> [Video Presentation](https://www.youtube.com/watch?v=oj3zjApOOGc) Psudohash also features single random password generation, able to generate random alphanumeric passwords in lowercase, uppercase, upper- and lowercase, and solely numeric, all with the option to add special characters an at a specified length. 
 
 ## Pentesting Corporate Environments
 System administrators and other employees often use a mutated version of the Company's name to set passwords (e.g. Am@z0n_2022). This is commonly the case for network devices (Wi-Fi access points, switches, routers, etc), application or even domain accounts. With the most basic options, psudohash can generate a wordlist with all possible mutations of one or multiple keywords, based on common character substitution patterns (customizable), case variations, strings commonly used as padding and more. Take a look at the following example:  
@@ -50,12 +50,13 @@ chmod +x psudohash.py
 ./psudohash.py [-h] -w WORDS [-an LEVEL] [-nl LIMIT] [-y YEARS] [-ap VALUES] [-cpb] [-cpa] [-cpo] [-o FILENAME] [-q]
 
 # Random
-./psudohash.py [-ra] [-rua] [-rula] [-n] [-sc]
+./psudohash.py [-ra] [length] / [-rua] [length] / [-rula] [length] / [-n] [length] [-sc]
 ```
 The help dialog [ -h, --help ] includes usage details and examples.
 ## Usage Tips
 1. Combining options `--years` and `--append-numbering` with a `--numbering-limit` ≥ last two digits of any year input, will most likely produce duplicate words because of the mutation patterns implemented by the tool. 
 2. If you add custom padding values and/or modify the predefined common padding values in the source code, in combination with multiple optional parameters, there is a small chance of duplicate words occurring. psudohash includes word filtering controls but for speed's sake, those are limited.
+3. Default lengths for random passwords are 12 for all options except solely numeric, which is 9.
 
 ## Individuals
 When it comes to people, i think we all have (more or less) set passwords using a mutation of one or more words that mean something to us e.g., our name or wife/kid/pet/band names, sticking the year we were born at the end or maybe a super secure padding like "!@#". Well, guess what?
