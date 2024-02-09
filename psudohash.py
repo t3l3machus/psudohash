@@ -25,20 +25,25 @@ Usage examples:
 
   Basic:
       python3 psudohash.py -w <keywords> -cpa
-	  python3 psudohash.py -ra -sc
+	  python3 psudohash.py -ra
 	
   Thorough:
       python3 psudohash.py -w <keywords> -cpa -an 3 -y 1990-2022
+	  python3 psudohash.py -rula 14 -sc
 '''
 	)
 
+# Prevent flags for random generation from being used together. 
+# Random generation flags do not conflict with keyword flags, and keyword flags are prioritized
 random_group = parser.add_mutually_exclusive_group()
 
-random_group.add_argument("-ra", "--random-alphanumeric", action = "store_true", help = "Generate a single lowercase alphanumeric password")
-random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store_true", help = "Generate a single uppercase alphanumeric password")
-random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store_true", help = "Generate a single upper- and lowercase alphanumeric password")
-random_group.add_argument("-n", "--numbers", action = "store_true", help = "Generate a single randoom numeric password of 9 digits")
-parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in random password")
+random_group.add_argument("-ra", "--random-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single lowercase alphanumeric password of specified length (default 12)")
+random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single uppercase alphanumeric password of specified length (default 12)")
+random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single upper- and lowercase alphanumeric password of specified length (default 12)")
+random_group.add_argument("-n", "--numbers", action = "store", type = int, nargs = "?", const = "9", help = "Generate a single random numeric of specified length (default 9)")
+
+# Special characters flag does not interfere with other code.
+parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in any random password, does not work alone")
 
 parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
@@ -172,7 +177,7 @@ if not args.words:
 		random_sequence = "1234567890"
 
 	if args.special_characters:
-		random_sequence += "~`! @#$%^&*()_-+={[}]|\:;\"'<,>.?/"
+		random_sequence += "~`!@#$%^&*()_-+={[}]|\:;\"'<,>.?/"
 
 transformations = [
 	{'a' : ['@', '4']},
@@ -522,14 +527,11 @@ def chill():
 
 
 
-def generate_random_password():
-	length = 12
+def generate_random_password(length: int):
 
-	# If the password is only numeric, set length to 9
-	if random_sequence.isnumeric():
-		length = 9
-	
+	# Randomly choose characters from the selection
 	pwd = ''.join(random.choice(random_sequence) for _ in range(length))
+
 	return pwd
 
 
@@ -620,26 +622,39 @@ def main():
 			
 	elif (args.random_alphanumeric or args.random_uppercase_alphanumeric 
 	or args.random_uppercase_lowercase_alphanumeric or args.numbers):
+		
+		# Determines message to print based on selected random option
 		choice = ""
+
+		# Desired password length
+		password_length = 0
+
+		# Displayed if special characters are included
 		special_characters_message = ""
+
 		if args.random_alphanumeric:
 			choice = "lowercase alphanumeric"
+			password_length = args.random_alphanumeric
 
 		elif args.random_uppercase_alphanumeric:
 			choice = "uppercase alphanumeric"
+			password_length = args.random_uppercase_alphanumeric
 
 		elif args.random_uppercase_lowercase_alphanumeric:
 			choice = "uppercase and lowercase alphanumeric"
+			password_length = args.random_uppercase_lowercase_alphanumeric
 
 		elif args.numbers:
 			choice = "numeric"
+			password_length = args.random_numbers
 
 		if args.special_characters:
 			special_characters_message = f" with {GREEN}special characters{END}"
 
-		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password{special_characters_message}...')
+		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password of length {GREEN}{password_length}{END}{special_characters_message}...')
+
 		with open(outfile, 'w') as output:
-			output.write(generate_random_password())
+			output.write(generate_random_password(password_length))
 
 		print(f' └─ Done!')
 		
