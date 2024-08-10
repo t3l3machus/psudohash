@@ -195,7 +195,7 @@ if args.append_padding:
 
 
 if (args.common_paddings_before or args.common_paddings_after):
-	common_paddings = unique(common_paddings)
+	common_paddings = list(set(common_paddings))
 
 
 # ----------------( Functions )---------------- #
@@ -274,7 +274,7 @@ def mutations_handler(kword, trans_chars, total):
 		for m in m_set:
 			basic_mutations.append(m)
 	
-	basic_mutations = unique(basic_mutations)
+	basic_mutations = list(set(basic_mutations))
 
 	with open(outfile, 'a') as wordlist:		
 		for m in basic_mutations:
@@ -298,7 +298,7 @@ def caseMutationsHandler(word, mutability):
 
 	if not mutability:
 		
-		basic_mutations = unique(basic_mutations)
+		basic_mutations = list(set(basic_mutations))
 		
 		with open(outfile, 'a') as wordlist:		
 			for m in basic_mutations:
