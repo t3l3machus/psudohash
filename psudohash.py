@@ -3,7 +3,7 @@
 # Author: Panagiotis Chartas (t3l3machus)
 # https://github.com/t3l3machus
 
-import argparse, sys, itertools
+import argparse, sys, itertools, random
 
 # Colors
 MAIN = '\033[38;5;50m'
@@ -25,13 +25,27 @@ Usage examples:
 
   Basic:
       python3 psudohash.py -w <keywords> -cpa
+	  python3 psudohash.py -ra
 	
   Thorough:
       python3 psudohash.py -w <keywords> -cpa -an 3 -y 1990-2022
+	  python3 psudohash.py -rula 14 -sc
 '''
 	)
 
-parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate", required = True)
+# Prevent flags for random generation from being used together. 
+# Random generation flags do not conflict with keyword flags, and keyword flags are prioritized
+random_group = parser.add_mutually_exclusive_group()
+
+random_group.add_argument("-ra", "--random-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single lowercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-rua", "--random-uppercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single uppercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-rula", "--random-uppercase-lowercase-alphanumeric", action = "store", type = int, nargs = "?", const = "12", help = "Generate a single upper- and lowercase alphanumeric password of specified length (default 12, must be >= 1)")
+random_group.add_argument("-n", "--numbers", action = "store", type = int, nargs = "?", const = "9", help = "Generate a single random numeric of specified length (default 9, must be >= 1)")
+
+# Special characters flag does not interfere with other code.
+parser.add_argument("-sc", "--special-characters", action = "store_true", help = "Include special characters in any random password, does not work alone")
+
+parser.add_argument("-w", "--words", action="store", help = "Comma seperated keywords to mutate")
 parser.add_argument("-an", "--append-numbering", action="store", help = "Append numbering range at the end of each word mutation (before appending year or common paddings).\nThe LEVEL value represents the minimum number of digits. LEVEL must be >= 1. \nSet to 1 will append range: 1,2,3..100\nSet to 2 will append range: 01,02,03..100 + previous\nSet to 3 will append range: 001,002,003..100 + previous.\n\n", type = int, metavar='LEVEL')
 parser.add_argument("-nl", "--numbering-limit", action="store", help = "Change max numbering limit value of option -an. Default is 50. Must be used with -an.", type = int, metavar='LIMIT')
 parser.add_argument("-y", "--years", action="store", help = "Singe OR comma seperated OR range of years to be appended to each word mutation (Example: 2022 OR 1990,2017,2022 OR 1990-2000)")
@@ -60,7 +74,6 @@ def unique(l):
 			unique_list.append(i)
     
 	return unique_list
-
 
 # Append numbering
 if args.numbering_limit and not args.append_numbering:
@@ -147,6 +160,24 @@ mutations_cage = []
 basic_mutations = []
 outfile = args.output if args.output else 'output.txt'
 trans_keys = []
+random_sequence = ""
+
+# If the user wants a random alphanumeric password, set the selection with appropriate characters
+if not args.words:
+	if args.random_alphanumeric:
+		random_sequence = "abcdefghijklmnopqrstuvwxyz1234567890"
+
+	elif args.random_uppercase_alphanumeric:
+		random_sequence = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+	elif args.random_uppercase_lowercase_alphanumeric:
+		random_sequence = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+	elif args.numbers:
+		random_sequence = "1234567890"
+
+	if args.special_characters:
+		random_sequence += "~`!@#$%^&*()_-+={[}]|\:;\"'<,>.?/"
 
 transformations = [
 	{'a' : ['@', '4']},
@@ -496,6 +527,14 @@ def chill():
 
 
 
+def generate_random_password(length: int):
+
+	# Randomly choose characters from the selection
+	pwd = ''.join(random.choice(random_sequence) for _ in range(length))
+
+	return pwd
+
+
 def main():
 	
 	banner() if not args.quiet else chill()
@@ -503,82 +542,148 @@ def main():
 	global basic_mutations, mutations_cage
 	keywords = []
 	
-	for w in args.words.split(','):
-		if w.strip().isdecimal():
-			exit_with_msg('Unable to mutate digit-only keywords.')
-			
-		elif w.strip() not in [None, '']:
-			keywords.append(w.strip())
-	
-	# Calculate total words and size of output
-	total_size = [0, 0]
-	
-	for keyw in keywords:
-		count_size = calculate_output(keyw.strip().lower())
-		total_size[0] += count_size[0]
-		total_size[1] += count_size[1]
-	
-	size = round(((total_size[1]/1000)/1000), 1) if total_size[1] > 100000 else total_size[1]
-	prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
-	fsize = f'{size} {prefix}'
-	
-	print(f'[{MAIN}Info{END}] Calculating output length and size...')
+	if args.words:
+		# This is necessary only when using arg -w
+		for w in args.words.split(','):
+			if w.strip().isdecimal():
+				exit_with_msg('Unable to mutate digit-only keywords.')
+				
+			elif w.strip() not in [None, '']:
+				keywords.append(w.strip())
+		
+		# Calculate total words and size of output
+		total_size = [0, 0]
+		
+		for keyw in keywords:
+			count_size = calculate_output(keyw.strip().lower())
+			total_size[0] += count_size[0]
+			total_size[1] += count_size[1]
+		
+		size = round(((total_size[1]/1000)/1000), 1) if total_size[1] > 100000 else total_size[1]
+		prefix = 'bytes' if total_size[1] <= 100000 else 'MB'
+		fsize = f'{size} {prefix}'
+		
+		print(f'[{MAIN}Info{END}] Calculating output length and size...')
 
-	# Inform user about the output size
-	try:
-		concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
-	except KeyboardInterrupt:
-		exit('\n')
-	
-	if concent.lower() not in ['y', 'yes']:
-		sys.exit(f'\n[{RED}X{END}] Aborting.')
+		# Inform user about the output size
+		try:
+			concent = input(f'[{ORANGE}Warning{END}] This operation will produce {BOLD}{total_size[0]}{END} words, {BOLD}{fsize}{END}. Are you sure you want to proceed? [y/n]: ')
+		except KeyboardInterrupt:
+			exit('\n')
 		
-	else:
-		
-		open(outfile, "w").close()
-		
-		for word in keywords:
-			print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
-			mutability = check_mutability(word.lower())
+		if concent.lower() not in ['y', 'yes']:
+			sys.exit(f'\n[{RED}X{END}] Aborting.')
+			
+		else:
+			
+			open(outfile, "w").close()
+			
+			for word in keywords:
+				print(f'[{GREEN}*{END}] Mutating keyword: {GREEN}{word}{END} ')	
+				mutability = check_mutability(word.lower())
+						
+				# Produce case mutations
+				print(f' ├─ Producing character case-based transformations... ')
+				caseMutationsHandler(word.lower(), mutability)	
+				
+				if mutability:
+					# Produce char substitution mutations
+					print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
+					trans = evalTransformations(word.lower())
+					mutations_handler(word, trans[0], trans[1])
 					
-			# Produce case mutations
-			print(f' ├─ Producing character case-based transformations... ')
-			caseMutationsHandler(word.lower(), mutability)	
-			
-			if mutability:
-				# Produce char substitution mutations
-				print(f' ├─ Mutating word based on commonly used char-to-symbol and char-to-number substitutions... ')
-				trans = evalTransformations(word.lower())
-				mutations_handler(word, trans[0], trans[1])
-				
-			else:
-				print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
+				else:
+					print(f' ├─ {ORANGE}No character substitution instructions match this word.{END}')
 
-			# Append numbering
-			if args.append_numbering:
-				print(f' ├─ Appending numbering to each word mutation... ')
-				append_numbering()
-			
-			# Handle years
-			if args.years:
-				print(f' ├─ Appending year patterns after each word mutation... ')
-				mutate_years()
-			
-			# Append common paddings		
-			if args.common_paddings_after or args.custom_paddings_only:
-				print(f' ├─ Appending common paddings after each word mutation... ')
-				append_paddings_after()
+				# Append numbering
+				if args.append_numbering:
+					print(f' ├─ Appending numbering to each word mutation... ')
+					append_numbering()
 				
-			if args.common_paddings_before:
-				print(f' ├─ Appending common paddings before each word mutation... ')
-				append_paddings_before()
+				# Handle years
+				if args.years:
+					print(f' ├─ Appending year patterns after each word mutation... ')
+					mutate_years()
+				
+				# Append common paddings		
+				if args.common_paddings_after or args.custom_paddings_only:
+					print(f' ├─ Appending common paddings after each word mutation... ')
+					append_paddings_after()
+					
+				if args.common_paddings_before:
+					print(f' ├─ Appending common paddings before each word mutation... ')
+					append_paddings_before()
+				
+				basic_mutations = []
+				mutations_cage = []
+				print(f' └─ Done!')
+
+			print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
 			
-			basic_mutations = []
-			mutations_cage = []
-			print(f' └─ Done!')
+	elif (args.random_alphanumeric or args.random_uppercase_alphanumeric 
+	or args.random_uppercase_lowercase_alphanumeric or args.numbers):
 		
-		print(f'\n[{MAIN}Info{END}] Completed! List saved in {outfile}\n')
-			
+		# Determines message to print based on selected random option
+		choice = ""
 
+		# Desired password length
+		password_length = 0
+
+		# Displayed if special characters are included
+		special_characters_message = ""
+
+		if args.random_alphanumeric:
+
+			choice = "lowercase alphanumeric"
+
+			if args.random_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_alphanumeric
+
+
+		elif args.random_uppercase_alphanumeric:
+
+			choice = "uppercase alphanumeric"
+
+			if args.random_uppercase_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_uppercase_alphanumeric
+
+
+		elif args.random_uppercase_lowercase_alphanumeric:
+
+			choice = "uppercase and lowercase alphanumeric"
+
+			if args.random_uppercase_lowercase_alphanumeric < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.random_uppercase_lowercase_alphanumeric
+
+
+		elif args.numbers:
+
+			choice = "numeric"
+
+			if args.numbers < 1:
+				exit_with_msg("Random password length must be >= 1.")
+			else:
+				password_length = args.numbers
+
+
+		if args.special_characters:
+			special_characters_message = f" with {GREEN}special characters{END}"
+
+		print(f'[{GREEN}*{END}] Generating random {GREEN}{choice}{END} password of length {GREEN}{password_length}{END}{special_characters_message}...')
+
+		with open(outfile, 'w') as output:
+			output.write(generate_random_password(password_length))
+
+		print(f' └─ Done!')
+		
+		print(f'\n[{MAIN}Info{END}] Completed! Password saved in {outfile}\n')
+
+	
 if __name__ == '__main__':
 	main()
